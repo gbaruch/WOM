@@ -29,7 +29,7 @@ max_length = max(max((len(x) for x in d)) for d in decode_map.values())
 def decode(data):
     decoded = ''
     data = ''.join(data)
-    while len(data) > 0:
+    while len(data) > 5:
         found = False
         for code, prefixes in decode_map.items():
             for prefix in prefixes:
@@ -48,7 +48,7 @@ def decode(data):
     return decoded
 
 def encode(data, written):
-    if len(written) < 3:
+    if len(written) < 6:
         return False, 0
 
     if len(data) < 2:

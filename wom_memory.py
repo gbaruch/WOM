@@ -64,26 +64,3 @@ class Memory(object):
     def capacity(self):
         return self.bits_written_count / len(self.data)
 
-    def test(self, input):
-        written = 0
-        start = 0
-        while True:
-            succeeded = self.write(input[written:written+len(self.data)])
-            written += succeeded
-            if succeeded == 0:
-                break
-            input += input[written:written+succeeded]
-            if self.round_just_changed:
-                r = self.read()
-                if r != input[start:written]:
-                    raise Exception("FAILED!. \ninput=\t{}, \nread=\t{}, round={}, length={}".format(input[start:], r, self.round, len(self.data)))
-                start = written
-        return self.capacity()
-
-
-def name(coders, padded=False):
-    if coders[0].name() == 'RivestShamir':
-        return 'RivestShamir'
-    v = '{0:8}' if padded else '{}'
-    return ' + '.join([v.format(i.name()) for i in coders])
-

@@ -53,7 +53,7 @@ max_length = max(max((len(x) for x in d)) for d in decode_map.values())
 def decode(data):
     decoded = ''
     data = ''.join(data)
-    while len(data) > 0:
+    while len(data) > 11:
         found = False
         for code, prefixes in decode_map.items():
             for prefix in prefixes:
@@ -71,8 +71,9 @@ def decode(data):
 
     return decoded
 
+
 def encode(data, written):
-    if len(written) < 5 or len(data) < 3:
+    if len(written) < 12 or len(data) < 3:
         return False, 0
 
     triplet = data[:3]

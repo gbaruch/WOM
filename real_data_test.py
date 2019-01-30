@@ -1,8 +1,7 @@
 import argparse
 
 import wom_memory
-from coders import fib, greedy, map_2to1, map_3to2, map_5to3, ternary, lookahead, rivest_shamir, lookahead0
-
+from coders import combinations
 
 def test_type(bits_data, wom_type, blocks_count, cells_count):
     woms = []
@@ -42,7 +41,7 @@ def test_file(data_folder, filename, wom_types, cells_count = 600, blocks_count 
 
     results = {}
     for coders in wom_types:
-        name = wom_memory.name(coders)
+        name = combinations.name(coders)
         res = test_type(bits_data, coders, blocks_count, cells_count)
         results[name] = res / cells_count / blocks_count
         print(', {0:18.3f}'.format(results[name]), end='')
@@ -64,16 +63,10 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--plot", action='store_true')
 
     args = parser.parse_args()
+    print(
+        f'\nEvaluating WOM methods on data from the folder "{args.data_directory}". {args.iteration_count} blocks of {args.memory_size} bits each.')
 
-    files = os.listdir(args.data_directory)
-
-    print(f'\nEvaluating WOM methods on data from the folder "{args.data_directory}". {args.iteration_count} blocks of {args.memory_size} bits each.')
-    coders_list = list()
-    coders_list.append([rivest_shamir, rivest_shamir])
-    coders_list.append([ternary, map_2to1])
-    for first in [fib, greedy]:
-        for second in [map_2to1, map_3to2, map_5to3, lookahead]: #lookahead0
-            coders_list.append([first, second])
+    coders_list = combinations.all_combinations()
 
     if args.save:
         out_filename = strftime("results_%Y-%m-%d %H-%M.csv", gmtime())
@@ -87,9 +80,10 @@ if __name__ == '__main__':
     print('\nResults:')
     print('{0:30}, {1:20}, {2:15}'.format('File Name', '1-bit probability', 'Overall Cells'),end='')
     for coders in coders_list:
-        print(', {0:<18}'.format(wom_memory.name(coders)), end='')
+        print(', {0:<18}'.format(combinations.name(coders)), end='')
     print('')
 
+    files = os.listdir(args.data_directory)
     results = {}
     one_bit_prob = {}
     for file_name in files:
