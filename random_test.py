@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 import wom_memory
 from coders import combinations
 
-def file_name(coders, resolution):
-    return 'logs/{}_res{}.npy'.format(coders if type(coders) == str else combinations.name(coders), resolution)
+def file_name(coders, resolution, cell_order):
+    return 'logs/{}_res{}{}.npy'.format(coders if type(coders) == str else combinations.name(coders), resolution, '' if cell_order == 1 else f'_order{cell_order}')
 
 
-def plot_3d(combos, resolution, coolwarm_cmap=False):
+def plot_3d(combos, resolution, order, coolwarm_cmap=False):
     from matplotlib import cm
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib as mpl
@@ -26,7 +26,7 @@ def plot_3d(combos, resolution, coolwarm_cmap=False):
     surfaces = []
     rax = plt.axes([0.05, 0.3, 0.2, 0.5])
     for combo in combos:
-        vals = np.load(file_name(combo, resolution))
+        vals = np.load(file_name(combo, resolution, order))
         X = np.linspace(0.01, 0.5, resolution)
         X, Y = np.meshgrid(X, X)
         surf = ax.plot_surface(X, Y, np.mean(vals, axis=2), visible=False, cmap=cm.coolwarm if coolwarm_cmap else None)
@@ -51,7 +51,7 @@ def plot_3d(combos, resolution, coolwarm_cmap=False):
     plt.show()
 
 
-def plot_results(coders_list, resolution):
+def plot_results(coders_list, resolution, cell_order):
 
     X = np.linspace(0.01, 0.5, resolution)
 
@@ -60,9 +60,9 @@ def plot_results(coders_list, resolution):
 
     for coders in coders_list:
         try:
-            vals = np.load(file_name(coders, resolution))
+            vals = np.load(file_name(coders, resolution, cell_order))
         except OSError:
-            print("Warning: couldn't find " + file_name(coders, resolution))
+            print("Warning: couldn't find " + file_name(coders, resolution, cell_order))
             continue
         name = combinations.name(coders)
         means = [np.mean(vals[i, i, :]) for i in range(len(X))]
@@ -104,7 +104,7 @@ def test_round(mem, input):
             return mem.capacity()
 
 
-def generate_random_results(coders_list, resolution=50, count=100, length=1002):
+def generate_random_results(coders_list, resolution=50, count=100, length=1002, cell_order=1):
     X = np.linspace(0.01, 0.5, resolution)
     print('{0:25}: ratio_at_0.5'.format('Name'))
     print('_'*35)
@@ -115,11 +115,11 @@ def generate_random_results(coders_list, resolution=50, count=100, length=1002):
         for X_ind[0] in range(len(X)):
             for X_ind[1] in range(len(X)):
                 for c in range(count):
-                    wom = wom_memory.Memory(length, coders)
+                    wom = wom_memory.Memory(length, coders, cell_order=cell_order)
                     for k in range(len(coders)):
-                        val = test_round(wom, generate_random_input(length, one_ratio=X[X_ind[k]]))
+                        val = test_round(wom, generate_random_input(length, one_ratio=X[X_ind[k]], cell_order=cell_order))
                     vals[X_ind[0], X_ind[1], c] = val
-        np.save(file_name(coders, resolution), vals)
+        np.save(file_name(coders, resolution, cell_order), vals)
         print("{0:.3f}".format(np.mean(vals[-1, -1, :])))
 
 
@@ -131,6 +131,7 @@ if __name__ == '__main__':
     parser.add_argument("-2", "--plot_2d", default=False, type=bool)
     parser.add_argument("-3", "--plot_3d", default=True, type=bool)
     parser.add_argument("-g", "--generate_results", default=True, type=bool)
+    parser.add_argument("-o", "--cell_order", default=1, type=int)
 
     args = parser.parse_args()
     print(f"Evaluating WOM methods on random data with {args.resolution} data points between 0 and 0.5,"
@@ -139,14 +140,14 @@ if __name__ == '__main__':
     coders_list = combinations.all_combinations()
 
     if args.generate_results:
-        generate_random_results(coders_list, args.resolution, args.iteration_count, args.memory_size)
+        generate_random_results(coders_list, args.resolution, args.iteration_count, args.memory_size, args.cell_order)
 
 
     if args.plot_3d:
-        plot_3d(coders_list, args.resolution)
+        plot_3d(coders_list, args.resolution, args.cell_order)
     if args.plot_2d:
         plt.figure()
         plt.title('WOM evaluated on random data')
-        plot_results(coders_list, args.resolution)
+        plot_results(coders_list, args.resolution, args.cell_order)
 
     plt.show()

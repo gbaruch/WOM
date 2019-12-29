@@ -1,5 +1,5 @@
 class Memory(object):
-    def __init__(self, length, writers, debug=False):
+    def __init__(self, length, writers, debug=False, cell_order=1):
         self.data = ['0'] * length
         self.length = length
         self.write_offset = 0
@@ -8,6 +8,7 @@ class Memory(object):
         self.bits_written_count = 0.
         self.round_just_changed = False
         self.writers = writers
+        self.cell_order = cell_order
 
     def max_rounds(self):
         return len(self.writers)
@@ -21,7 +22,7 @@ class Memory(object):
     @staticmethod
     def is_valid_move(written, to_write):
         for i in range(len(to_write)):
-            if to_write[i] == '0' and written[i] == '1':
+            if int(to_write[i]) < int(written[i]):
                 return False
         return True
 
@@ -40,9 +41,8 @@ class Memory(object):
             self.bits_written_count += bits_encoded
             data = data[bits_encoded:]
             bits_encoded_sum += bits_encoded
-            if self.round > 0:
-                if not self.is_valid_move(self.data[self.write_offset:], to_write):
-                    raise Exception("Trying to write 0 on 1 at index {0}.".format(self.write_offset+i))
+            if not self.is_valid_move(self.data[self.write_offset:], to_write):
+                raise Exception("Trying to write 0 on 1 at index {0}.".format(self.write_offset+i))
             self.data[self.write_offset: self.write_offset + len(to_write)] = to_write
             self.write_offset += len(to_write)
             self.round_just_changed = False
