@@ -41,7 +41,7 @@ def test_file(data_folder, filename, wom_types, cells_count = 600, blocks_count 
 
     results = {}
     for coders in wom_types:
-        name = combinations.name(coders)
+        name = combinations.name(coders).replace('+', '+\n')
         res = test_type(bits_data, coders, blocks_count, cells_count)
         results[name] = res / cells_count / blocks_count
         print(', {0:18.3f}'.format(results[name]), end='')
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data_directory", default='data/', type=str)
-    parser.add_argument("-m", "--memory_size", default=60, type=int)
+    parser.add_argument("-m", "--memory_size", default=600, type=int)
     parser.add_argument("-c", "--iteration_count", default=10, type=int)
     parser.add_argument("-s", "--save", action='store_true')
     parser.add_argument("-p", "--plot", action='store_true')
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     print(
         f'\nEvaluating WOM methods on data from the folder "{args.data_directory}". {args.iteration_count} blocks of {args.memory_size} bits each.')
 
-    coders_list = combinations.all_combinations()
+    coders_list = combinations.all_combinations(include_first_rounders=False)
 
     if args.save:
         out_filename = strftime("results_%Y-%m-%d %H-%M.csv", gmtime())
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     results = {}
     one_bit_prob = {}
     for file_name in files:
-        if file_name.startswith('results'):
+        if file_name.startswith('results') or os.path.isdir(os.path.join(args.data_directory, file_name)) or file_name[0] == '.':
             continue
         results[file_name], one_bit_prob[file_name] = test_file(args.data_directory, file_name, coders_list, args.memory_size, args.iteration_count)
 
@@ -97,11 +97,24 @@ if __name__ == '__main__':
         print('Done')
 
     if args.plot or True:
+        import pandas as pd
         import matplotlib.pyplot as plt
+        df = pd.DataFrame(results).T
+        df.index = ['{0:}\n({1:.1f}% 1-bits)'.format(key.split('.')[0], one_bit_prob[key] * 100) for key in df.index]
+
+        df.plot(kind='barh')
+        plt.figure()
 
         for key in results:
-            plt.plot(results[key].keys(), results[key].values(), label='{0:30} ({1:.2f}% 1-bits)'.format(key, one_bit_prob[key] * 100))
+            plt.plot(list(results[key].keys()), list(results[key].values()), label='{0:30} ({1:.2f}% 1-bits)'.format(key, one_bit_prob[key] * 100))
 
         plt.legend()
+
+        # import seaborn as sns
+        # import pandas as pd
+        # df = pd.DataFrame(results)#pd.DataFrame(zip(x * 3, ["y"] * 3 + ["z"] * 3 + ["k"] * 3, y + z + k), columns=["time", "kind", "data"])
+        # plt.figure(figsize=(10, 6))
+        # sns.barplot(x="file", hue="method", y="data", data=df)
+        # plt.show()
         plt.show()
     exit()

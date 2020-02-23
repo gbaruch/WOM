@@ -1,13 +1,13 @@
 counter = {'0': 0, '11': 0, '10': 0}
 
 def name():
-    return 'lookahead'
+    return 'Lookahead'
 
 def encode(data, written):
     d = data[0]
 
     if 1 >= len(written):
-        return False, 0
+        return written, 0
 
     if d == '0' and written[0] == '0':
         counter['0'] += 1

@@ -20,10 +20,13 @@ class Memory(object):
         self.round_just_changed = True
 
     @staticmethod
-    def is_valid_move(written, to_write):
+    def is_valid_move(written, to_write, return_index=False):
         for i in range(len(to_write)):
             if int(to_write[i]) < int(written[i]):
-                return False
+                if return_index:
+                    return i
+                else:
+                    return False
         return True
 
     def write(self, data, write_through_rounds=False):
@@ -39,10 +42,12 @@ class Memory(object):
                 break
 
             self.bits_written_count += bits_encoded
-            data = data[bits_encoded:]
+
             bits_encoded_sum += bits_encoded
-            if not self.is_valid_move(self.data[self.write_offset:], to_write):
-                raise Exception("Trying to write 0 on 1 at index {0}.".format(self.write_offset+i))
+            is_valid = self.is_valid_move(self.data[self.write_offset:], to_write)
+            if not is_valid:
+                raise Exception("Trying to write 0 on 1 at index {0}.".format(self.write_offset + self.is_valid_move(self.data[self.write_offset:], to_write, return_index=True)))
+            data = data[bits_encoded:]
             self.data[self.write_offset: self.write_offset + len(to_write)] = to_write
             self.write_offset += len(to_write)
             self.round_just_changed = False

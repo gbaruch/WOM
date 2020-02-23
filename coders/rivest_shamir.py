@@ -16,7 +16,7 @@ decode_map.update(dict((reversed(item) for item in encode_map[1].items())))
 
 
 def encode(to_encode, written):
-    if len(to_encode) < 3 or len(written) < 3:
+    if len(to_encode) < 2 or len(written) < 3:
         return False, 0
 
     data = to_encode[:2]
