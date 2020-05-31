@@ -3,24 +3,39 @@ def name():
 
 
 class Binary(object):
-    def __init__(self, zero_every=0):
-        self.zero_every = zero_every
+    def __init__(self, padding_ratio=0):
+        self.padding_ratio = padding_ratio
 
     def name(self):
         name = f'Binary'
-        if self.zero_every > 0:
-            name += f', zero every {self.zero_every}'
+        if self.padding_ratio > 0:
+            name += f', padding ratio {self.padding_ratio}'
         return name
 
     def encode(self, data, written):
-        l = min(len(data), len(written))
-        if self.zero_every == 0 or self.zero_every >= l:
-            return data[:l], l
-
-        return data[:self.zero_every] + '0', self.zero_every
+        l = min(len(data), int((1 / (1 + self.padding_ratio)) * len(written) + 0.5))
+        padding = '0' * int(l * self.padding_ratio)
+        return data[:l] + padding, l
 
     def decode(self, data):
-        if self.zero_every == 0:
-            return ''.join(data)
-        else:
-            return ''.join([i for idx, i in enumerate(data) if idx % (self.zero_every + 1) != self.zero_every])
+        data_portion = int(len(data) / (1 + self.padding_ratio) + 0.5)
+        return ''.join(data[:data_portion])
+
+
+if __name__ == '__main__':
+    import numpy as np
+    def generate_random_input(length, one_ratio=0.5):
+        import random
+        return ''.join(["1" if random.random() < one_ratio else "0" for i in range(length)])
+
+
+    for i in range(10):
+        r = np.random.random()
+
+        rand_100K = generate_random_input(100000)
+        b = Binary(r)
+        encoded, bits = b.encode(rand_100K, '0'*int(100000* (1 + r) + 0.5))
+        d = b.decode(encoded)
+        ld = len(d)
+        if(d != rand_100K):
+            print("Fail")
