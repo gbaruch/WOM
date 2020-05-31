@@ -170,8 +170,8 @@ if __name__ == '__main__':
         return 'w' if val else 'wo'
 
     with_toggle = False
-    main_L = 7
-    one_probs = np.linspace(0.01, 0.5, 6)
+    main_L = 6
+    one_probs = np.linspace(0.01, 0.5, 11)
     for with_complement in [True, False]:
         for with_padding in [False, True]:
 

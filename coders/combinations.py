@@ -1,53 +1,89 @@
-from coders import fib, greedy, map_2to1, map_3to2, map_5to3, ternary, lookahead, rivest_shamir, lookahead0, multiary_fib
-from coders.fitting import Fitting
-from coders.fitting2 import Fitting2
+from coders import fib, greedy, map_2to1, map_3to2, map_5to3, ternary, lookahead, rivest_shamir, multiary_fib
+from coders.guided_blocks import GuidedBlocks
 from coders.simple_binary import Binary
-
+from coders.two_sided_guided_blocks import TwoSidedGuidedBlocks
 from coders.higher_order_wrapper import HigherOrderWrapper
 from coders.multiary_lookahead import MultiaryLookahead
 
 
-def fitting_tryouts():
-    #return [[Binary(), Fitting(1,2)], [Binary(), Fitting(1)]]
+def for_3d():
+    return [[greedy, lookahead]]
 
+
+def theory_tryouts():
+    coders_list = list()
+    for L in [3, 6]:
+        for complement in [False, True]:
+            for with_padding in [True, False]:
+                padding = 1 / L if with_padding else 0
+                coders_list.append([Binary(padding), TwoSidedGuidedBlocks(L, L, with_complement=complement)])
+    return coders_list
+
+
+def with_guided_blocks():
+    coders_list = list()
+    for first in [greedy, fib]:
+        for second in [lookahead]:
+            coders_list.append([first, second])
+
+    coders_list.append([rivest_shamir, rivest_shamir])
+    coders_list.append([rivest_shamir, rivest_shamir, GuidedBlocks(3, 3)])
+
+    for L in [2, 5, 8, 11]:
+        coders_list.append([Binary(), GuidedBlocks(L, 1, 0)])
+    return coders_list
+
+
+def on_real_data():
     coders_list = list()
 
-    for dec in [0, 1, 3]:
-        for second in [Fitting2(i, dec) for i in range(3,8)]:
-                coders_list.append([Binary(), second])
-
-    for L in range(5,7):
-        for mode in [2,3]:
-            for dec in [3]:
-                coders_list.append([Binary(), Fitting(L, mode, dec)])
-
-    for L in range(3,-4):
-        for mode in [2]:
-            coders_list.append([Binary(), Fitting(L, mode, 0)])
-
-    # l = len(coders_list)
-    # for j in range(10):
-    #     coders_list.append(coders_list[-1] + [Fitting(6, 3, 3)])
-
     coders_list.append([greedy, lookahead])
+
     coders_list.append([rivest_shamir, rivest_shamir])
+
+    coders_list.append([Binary(), GuidedBlocks(3, 1)])
+    coders_list.append([Binary(), GuidedBlocks(6, 3, 0)])
+    coders_list.append([Binary(), GuidedBlocks(6, 3, 3)])
 
     return coders_list
 
 
-def all_combinations(include_first_rounders=True, include_non_switched_fittings=False):
+def three_writes():
     coders_list = list()
-    switched = [True, False] if include_non_switched_fittings else [True]
-    coders_list.append([Binary(), Fitting(3, 0)])
-    coders_list.append([Binary(), Fitting(6, 3, 3)])
-    for first in [fib, greedy]:
-        for second in [lookahead]: #, map_3to2, map_2to1, map_5to3#lookahead0
-            coders_list.append([first, second])
+
+    coders_list.append([greedy, lookahead])
     coders_list.append([rivest_shamir, rivest_shamir])
-    #coders_list.append([ternary, map_2to1])
+    coders_list.append([Binary(), GuidedBlocks(6, 3, 3)])
+    coders_list.append([Binary(), GuidedBlocks(3, 1)])
+
+    l2 = list()
+    for i in coders_list:
+        l2.append(i + [GuidedBlocks(3, 1)])
+
+    return l2
+
+
+def all_combinations(include_first_rounders=True, include_non_switched_fittings=False, add_fitting_to_all=False):
+
+    coders_list = list()
+    for first in [greedy, fib]:
+        for second in [lookahead, map_3to2, map_5to3]:
+            coders_list.append([first, second])
+
+    coders_list.append([rivest_shamir, rivest_shamir])
+
+    coders_list.append([Binary(), GuidedBlocks(3)])
+    coders_list.append([Binary(), GuidedBlocks(6, 3, 3)])
+
+    coders_list.append([ternary, map_2to1])
     if include_first_rounders:
         coders_list.append([greedy])
         coders_list.append([fib])
+
+    if add_fitting_to_all:
+        l = len(coders_list)
+        for i in coders_list[:l]:
+            i.append(GuidedBlocks(3, 3))
 
     return coders_list
 
@@ -57,10 +93,12 @@ Names = {}
 def name(combination, padded=False):
     if tuple(combination) in Names:
         return Names[tuple(combination)]
+    v = '{0:8}' if padded else '{}'
 
     if combination[0].name() == 'RivestShamir':
-        return 'RivestShamir'
-    v = '{0:8}' if padded else '{}'
+        name = 'RivestShamir'
+        if len(combination) > 2:
+            return ' + '.join([name] + [v.format(i.name()) for i in combination[2:]])
     return ' + '.join([v.format(i.name()) for i in combination])
 
 

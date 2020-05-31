@@ -2,7 +2,7 @@ from collections import Counter
 import sys
 
 
-class Fitting(object):
+class GuidedBlocks(object):
     DEFAULT_L = 6
     DEFAULT_TOGGLE = 3
     DEFAULT_DECREASE = 0
@@ -45,7 +45,7 @@ class Fitting(object):
 
         offset = 0
         fail_counts = 0
-        while not written[offset] == '0' or not Fitting.is_valid_move(chunk, written[offset + 1:]):
+        while not written[offset] == '0' or not GuidedBlocks.is_valid_move(chunk, written[offset + 1:]):
             fail_counts += 1
             offset += self.stride
             if self.decrease_every > 0:

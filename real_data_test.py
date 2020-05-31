@@ -58,7 +58,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data_directory", default='data/', type=str)
     parser.add_argument("-m", "--memory_size", default=600, type=int)
-    parser.add_argument("-c", "--iteration_count", default=10, type=int)
+    parser.add_argument("-c", "--iteration_count", default=100, type=int)
     parser.add_argument("-s", "--save", action='store_true')
     parser.add_argument("-p", "--plot", action='store_true')
 
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     print(
         f'\nEvaluating WOM methods on data from the folder "{args.data_directory}". {args.iteration_count} blocks of {args.memory_size} bits each.')
 
-    coders_list = combinations.all_combinations(include_first_rounders=False)
+    coders_list = combinations.on_real_data()
 
     if args.save:
         out_filename = strftime("results_%Y-%m-%d %H-%M.csv", gmtime())
@@ -103,18 +103,18 @@ if __name__ == '__main__':
         df.index = ['{0:}\n({1:.1f}% 1-bits)'.format(key.split('.')[0], one_bit_prob[key] * 100) for key in df.index]
 
         df.plot(kind='barh')
-        plt.figure()
 
-        for key in results:
-            plt.plot(list(results[key].keys()), list(results[key].values()), label='{0:30} ({1:.2f}% 1-bits)'.format(key, one_bit_prob[key] * 100))
+        if False:
+            plt.figure()
 
-        plt.legend()
+            for key in results:
+                plt.plot(list(results[key].keys()), list(results[key].values()), label='{0:30} ({1:.2f}% 1-bits)'.format(key, one_bit_prob[key] * 100))
 
-        # import seaborn as sns
-        # import pandas as pd
-        # df = pd.DataFrame(results)#pd.DataFrame(zip(x * 3, ["y"] * 3 + ["z"] * 3 + ["k"] * 3, y + z + k), columns=["time", "kind", "data"])
-        # plt.figure(figsize=(10, 6))
-        # sns.barplot(x="file", hue="method", y="data", data=df)
-        # plt.show()
+            plt.legend()
+
+        import tikzplotlib
+
+        tikzplotlib.save("real_data_plot.tex")
+
         plt.show()
     exit()
