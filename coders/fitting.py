@@ -4,21 +4,24 @@ import sys
 
 class Fitting(object):
     DEFAULT_L = 6
-    DEFAULT_TOGGLE=3
-    DEFAULT_DECREASE=0
-    def __init__(self, L=DEFAULT_L, toggle_every=DEFAULT_TOGGLE, decrease_every=DEFAULT_DECREASE, decrease_by=1):
+    DEFAULT_TOGGLE = 3
+    DEFAULT_DECREASE = 0
+
+    def __init__(self, L=DEFAULT_L, toggle_every=DEFAULT_TOGGLE, decrease_every=DEFAULT_DECREASE, decrease_by=1, stride=1):
         self.L = L
-        self.stats = Counter()
         self.toggle_every = toggle_every
         self.decrease_every = decrease_every
         self.decrease_by = decrease_by
+        self.stride = stride
 
     def name(self):
-        name = f'Fitting L={self.L}'
+        name = f'Guided Blocks L={self.L}'
         if self.toggle_every  > 0:
             name += f'; toggle every {self.toggle_every}'
         if self.decrease_every > 0:
             name += f'; decrease {self.decrease_by} every {self.decrease_every}'
+        if self.stride > 1:
+            name += f'; stride: {self.stride}'
         return name
 
     def is_valid_move(data, written):
@@ -41,20 +44,12 @@ class Fitting(object):
         chunk = self.switch(data[:length_to_try])
 
         offset = 0
+        fail_counts = 0
         while not written[offset] == '0' or not Fitting.is_valid_move(chunk, written[offset + 1:]):
-
-            ###stats##
-            if not written[offset] == '0':
-                self.stats[f'flag at {offset}'] += 1
-            if not Fitting.is_valid_move(chunk, written[offset + 1:]):
-                self.stats[f'fit at {offset}'] += 1
-            self.stats[f'failed at {offset}'] += 1
-            ##########
-
-
-            offset += 1
+            fail_counts += 1
+            offset += self.stride
             if self.decrease_every > 0:
-                length_to_try = max(1, self.L - self.decrease_by * (offset // self.decrease_every))
+                length_to_try = max(1, self.L - self.decrease_by * (fail_counts // self.decrease_every))
                 chunk = chunk[:length_to_try]
             if len(written) - offset < length_to_try + 1:
                 return fail()
@@ -62,9 +57,6 @@ class Fitting(object):
             if self.toggle_every > 0 and offset % self.toggle_every == 0:
                 chunk = self.switch(chunk)
 
-
-        self.stats[offset] += 1
-        self.stats['success'] += 1
         return '1'*(offset) + ''.join(written[offset: offset+1]) + ''.join(chunk), length_to_try
 
     def decode(self, data):
@@ -84,17 +76,8 @@ class Fitting(object):
                 flag_count = 0
                 length_to_read = self.L
             else:
-                offset += 1
+                offset += self.stride
                 flag_count += 1
                 if self.decrease_every > 0:
                     length_to_read = max(1, self.L - self.decrease_by * (flag_count// self.decrease_every))
         return ''.join(decoded)
-
-    def print_stats(self):
-        for i in range(100):
-            tries = self.stats[f'failed at {i}'] + self.stats[i]
-            if tries > 0:
-                print(i, self.stats[f'failed at {i}'] / tries, self.stats[f'flag at {i}'] / tries, self.stats[f'fit at {i}'] / tries)
-
-    def reset_stats(self):
-        self.stats = Counter()
