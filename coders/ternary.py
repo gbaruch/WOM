@@ -43,3 +43,7 @@ def decode(data):
         in_ter += decoder[tuple(data[i:i+2])]
     val = int(in_ter, 3)
     return format(val, '0'+str(data_length)+'b')
+
+
+def theory(one_bit_ratio):
+    return 0.5 * math.log(3, 2)

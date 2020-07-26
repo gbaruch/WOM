@@ -12,3 +12,5 @@ def decode(data):
     decoded = ['1' if data[i:i+2] == ["1", "1"] else '0' for i in range(0, len(data), 2)]
     return ''.join(decoded)
 
+def theory(one_bit_ratio):
+    return 0.5

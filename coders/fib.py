@@ -30,3 +30,6 @@ def decode(data):
     output_len = fib_ratio(len(data))
     return format(input, '0'+str(output_len)+'b')
 
+
+def theory(one_bit_ratio=None):
+    return 0.694

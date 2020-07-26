@@ -18,6 +18,11 @@ class Memory(object):
         self.round += 1
         self.write_offset = 0
         self.round_just_changed = True
+        for writer in self.writers:
+            try:
+                writer.reset()
+            except:
+                pass
 
     @staticmethod
     def is_valid_move(written, to_write, return_index=False):

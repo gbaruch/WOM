@@ -14,7 +14,7 @@ class Binary(object):
 
     def encode(self, data, written):
         l = min(len(data), int((1 / (1 + self.padding_ratio)) * len(written) + 0.5))
-        padding = '0' * (len(data) - l)
+        padding = '0' * (len(data) - l) if self.padding_ratio else ''
         return data[:l] + padding, l
 
     def decode(self, data):

@@ -1,4 +1,5 @@
-from coders import fib, greedy, map_2to1, map_3to2, map_5to3, ternary, lookahead, rivest_shamir, multiary_fib
+from coders import fib, greedy, map_2to1, map_3to2, map_5to3, ternary, inspection, rivest_shamir, multiary_fib
+from coders.lookahead import Lookahead0
 from coders.guided_blocks import GuidedBlocks
 from coders.simple_binary import Binary
 from coders.two_sided_guided_blocks import TwoSidedGuidedBlocks
@@ -7,23 +8,26 @@ from coders.multiary_lookahead import MultiaryLookahead
 
 
 def for_3d():
-    return [[greedy, lookahead]]
+    return [[greedy, inspection]]
 
 
-def theory_tryouts():
+def theory_tryouts(for_guided_blocks=True):
     coders_list = list()
-    for L in [3, 6]:
-        for complement in [False, True]:
-            for with_padding in [True, False]:
-                padding = 1 / L if with_padding else 0
-                coders_list.append([Binary(padding), TwoSidedGuidedBlocks(L, L, with_complement=complement)])
+    if for_guided_blocks:
+        for L in [3, 6]:
+            for compliment in [False, True]:
+                coders_list.append([Binary(), GuidedBlocks(L, toggle_every=0, stride=L+1, with_complement=compliment)])
+            coders_list.append([Binary(), GuidedBlocks(L, toggle_every=0, stride=1, with_complement=True)])
+    else:
+        for second in [Lookahead0(), inspection]:
+            coders_list.append([fib, second])
     return coders_list
 
 
 def with_guided_blocks():
     coders_list = list()
     for first in [greedy, fib]:
-        for second in [lookahead]:
+        for second in [inspection]:
             coders_list.append([first, second])
 
     coders_list.append([rivest_shamir, rivest_shamir])
@@ -37,10 +41,8 @@ def with_guided_blocks():
 def on_real_data():
     coders_list = list()
 
-    coders_list.append([greedy, lookahead])
-
+    coders_list.append([greedy, inspection])
     coders_list.append([rivest_shamir, rivest_shamir])
-
     coders_list.append([Binary(), GuidedBlocks(3, 1)])
     coders_list.append([Binary(), GuidedBlocks(6, 3, 0)])
     coders_list.append([Binary(), GuidedBlocks(6, 3, 3)])
@@ -51,7 +53,7 @@ def on_real_data():
 def three_writes():
     coders_list = list()
 
-    coders_list.append([greedy, lookahead])
+    coders_list.append([greedy, inspection])
     coders_list.append([rivest_shamir, rivest_shamir])
     coders_list.append([Binary(), GuidedBlocks(6, 3, 3)])
     coders_list.append([Binary(), GuidedBlocks(3, 1)])
@@ -63,32 +65,30 @@ def three_writes():
     return l2
 
 
-def all_combinations(include_first_rounders=True, include_non_switched_fittings=False, add_fitting_to_all=False):
-
+def all_combinations(include_first_rounders=True, with_guided_blocks=True):
     coders_list = list()
+    coders_list.append([rivest_shamir, rivest_shamir])
+    coders_list.append([ternary, map_2to1])
+
     for first in [greedy, fib]:
-        for second in [lookahead, map_3to2, map_5to3]:
+        for second in [Lookahead0(), inspection, map_3to2, map_5to3, map_2to1]:
             coders_list.append([first, second])
 
-    coders_list.append([rivest_shamir, rivest_shamir])
+    if with_guided_blocks:
+        coders_list.append([Binary(), GuidedBlocks(3)])
+        coders_list.append([Binary(), GuidedBlocks(6, 3, 3)])
+        for L in [3, 6]:
+            coders_list.append([Binary(), GuidedBlocks(L, toggle_every=0, stride=1, with_complement=True)])
 
-    coders_list.append([Binary(), GuidedBlocks(3)])
-    coders_list.append([Binary(), GuidedBlocks(6, 3, 3)])
-
-    coders_list.append([ternary, map_2to1])
     if include_first_rounders:
         coders_list.append([greedy])
         coders_list.append([fib])
-
-    if add_fitting_to_all:
-        l = len(coders_list)
-        for i in coders_list[:l]:
-            i.append(GuidedBlocks(3, 3))
 
     return coders_list
 
 
 Names = {}
+
 
 def name(combination, padded=False):
     if tuple(combination) in Names:
@@ -113,10 +113,10 @@ def repeater(for_each_round, cell_order):
 
 
 def multiary_combinations(cell_order):
-    leveled_fib = repeater([fib, lookahead], cell_order)
-    leveled_greedy = repeater([greedy, lookahead], cell_order)
+    leveled_fib = repeater([fib, inspection], cell_order)
+    leveled_greedy = repeater([greedy, inspection], cell_order)
     rs_list = repeater([rivest_shamir, rivest_shamir], cell_order)
-    mfc = [multiary_fib.MultiaryFib(cell_order), HigherOrderWrapper(lookahead, cell_order)]
+    mfc = [multiary_fib.MultiaryFib(cell_order), HigherOrderWrapper(inspection, cell_order)]
 
     if cell_order == 3:
         return [[multiary_fib.MultiaryFib(cell_order), MultiaryLookahead(cell_order)], mfc, rs_list]

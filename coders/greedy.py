@@ -19,3 +19,7 @@ def decode(data):
         decoded += data[offset]
         offset += 1 + int(data[offset])
     return decoded
+
+
+def theory(one_bit_ratio=None):
+    return 1 / (1 + one_bit_ratio)

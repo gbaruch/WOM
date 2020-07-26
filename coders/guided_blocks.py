@@ -7,15 +7,18 @@ class GuidedBlocks(object):
     DEFAULT_TOGGLE = 3
     DEFAULT_DECREASE = 0
 
-    def __init__(self, L=DEFAULT_L, toggle_every=DEFAULT_TOGGLE, decrease_every=DEFAULT_DECREASE, decrease_by=1, stride=1):
+    def __init__(self, L=DEFAULT_L, toggle_every=DEFAULT_TOGGLE, decrease_every=DEFAULT_DECREASE, with_complement=True, decrease_by=1, stride=1):
         self.L = L
         self.toggle_every = toggle_every
         self.decrease_every = decrease_every
         self.decrease_by = decrease_by
         self.stride = stride
+        self.with_complement = with_complement
 
     def name(self):
         name = f'Guided Blocks L={self.L}'
+        if self.with_complement:
+            name += f'; complement'
         if self.toggle_every  > 0:
             name += f'; toggle every {self.toggle_every}'
         if self.decrease_every > 0:
@@ -41,7 +44,10 @@ class GuidedBlocks(object):
             return fail()
 
         length_to_try = self.L
-        chunk = self.switch(data[:length_to_try])
+        if self.with_complement:
+            chunk = self.switch(data[:length_to_try])
+        else:
+            chunk = data[:length_to_try]
 
         offset = 0
         fail_counts = 0
@@ -67,7 +73,7 @@ class GuidedBlocks(object):
         while offset + length_to_read < len(data):
             if data[offset] == '0':
                 read = data[offset + 1: offset + 1 + length_to_read]
-                if self.toggle_every >  0 and (flag_count // self.toggle_every) % 2 == 1:
+                if self.toggle_every > 0 and (flag_count // self.toggle_every) % 2 == 1:
                     decoded += read
                 else:
                     decoded += self.switch(read)
@@ -80,4 +86,7 @@ class GuidedBlocks(object):
                 flag_count += 1
                 if self.decrease_every > 0:
                     length_to_read = max(1, self.L - self.decrease_by * (flag_count// self.decrease_every))
-        return ''.join(decoded)
+        if not self.with_complement:
+            return ''.join(self.switch(decoded))
+        else:
+            return ''.join(decoded)

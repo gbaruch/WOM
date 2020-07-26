@@ -32,3 +32,6 @@ def decode(data):
     for i in range(0, len(data)-2, 3):
         decoded += decode_map[tuple(data[i:i+3])]
     return ''.join(decoded)
+
+def theory(one_bit_ratio):
+    return 2/3
