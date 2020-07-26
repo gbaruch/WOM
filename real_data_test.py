@@ -114,7 +114,7 @@ if __name__ == '__main__':
 
         import tikzplotlib
 
-        tikzplotlib.save("real_data_plot.tex")
+        tikzplotlib.save("plots/real_data_plot.tex")
 
         plt.show()
     exit()

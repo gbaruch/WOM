@@ -248,7 +248,7 @@ def plot_results(coders_list, resolution, length, cell_order, writes=2, plot_the
 
     import tikzplotlib
 
-    tikzplotlib.save("gb_random_test_plot.tex")
+    tikzplotlib.save("plots/random_test_plot.tex")
 
     plt.show()
 
